@@ -67,22 +67,17 @@ def pixelsToLevelJSON(pixels):
                 },
                 "animations": [
                     {
-                        "frames": [
-                            {}
-                        ],
-                        "speed": 0.04
+                        "frames": [],
+                        "speed": 1
                         
                     }
                 ]
             }
-            time = 0
             for state in pixels:
-                time += 1
                 frame = {
                     "position": {
                         "z": round(state[y][x], 3)
                     },
-                    # "time": time
                 }
                 current['animations'][0]['frames'].append(frame)
             level['levelNodes'].append(current)
