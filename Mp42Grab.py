@@ -62,8 +62,7 @@ def pixelsToLevelJSON(pixels):
                     "material": 8,
                     "position": {
                         "x": x,
-                        "y": y,
-                        "z": 1.0
+                        "y": y
                     },
                     "rotation": {
                         "w": 1.0

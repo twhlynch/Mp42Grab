@@ -82,10 +82,10 @@ def pixelsToLevelJSON(pixels):
                 current['animations'][0]['frames'].append(frame)
             level['levelNodes'].append(current)
             print(str(x)+','+str(y))
-            print(len(json.dumps(current)))
+            print(len(current['animations'][0]['frames']))
 
     return level
 
 pixels_json = videoToPixelArray('video.mp4')
 level_json = pixelsToLevelJSON(pixels_json)
-createLevel(json.dumps(level_json), 'video.level')
+createLevel(json.dumps(level_json), 'video_efficient.level')
