@@ -85,7 +85,9 @@ def pixelsToLevelJSON(pixels):
                                 }
                             }
                         ],
-                        "name": "idle"
+                        "name": "idle",
+                        "speed": 1.0
+                        
                     }
                 ]
             }
