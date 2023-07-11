@@ -17,7 +17,7 @@ def video_to_pixel_array(video_path):
     pixel_array = np.array(pixel_array)
     return pixel_array
 
-video_path = 'rik.mp4'
+video_path = 'video.mp4'
 pixels = video_to_pixel_array(video_path)
 
 output_path = 'pixel_data.json'
