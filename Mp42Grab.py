@@ -92,7 +92,7 @@ def pixelsToLevelJSON(pixels):
                 time += 0.04
                 frame = {
                     "position": {
-                        "z": round(state[y][x], 3)
+                        "z": round(state[y][x] / 2, 3)
                     },
                     "rotation": {
                         "w": 1
