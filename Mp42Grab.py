@@ -53,19 +53,10 @@ def pixelsToLevelJSON(pixels):
         for y in range(30):
             current = {
                 "levelNodeStatic": {
-                    "color": {
-                        "a": 1.0,
-                        "b": 0.001,
-                        "g": 0.001,
-                        "r": 0.001
-                    },
                     "material": 8,
                     "position": {
                         "x": x,
                         "y": y
-                    },
-                    "rotation": {
-                        "w": 1.0
                     },
                     "scale": {
                         "x": 1.0,
@@ -76,14 +67,7 @@ def pixelsToLevelJSON(pixels):
                 },
                 "animations": [
                     {
-                        "frames": [
-                            {
-                                "position": {},
-                                "rotation": {
-                                    "w": 1.0
-                                }
-                            }
-                        ],
+                        "frames": [],
                         "name": "idle",
                         "speed": 0.04
                         
@@ -97,10 +81,7 @@ def pixelsToLevelJSON(pixels):
                     "position": {
                         "z": round(state[y][x], 3)
                     },
-                    "rotation": {
-                        "w": 1.0
-                    },
-                    "time": round(time, 2)
+                    "time": time
                 }
                 current['animations'][0]['frames'].append(frame)
             level['levelNodes'].append(current)
