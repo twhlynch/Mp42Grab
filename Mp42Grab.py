@@ -54,32 +54,48 @@ def pixelsToLevelJSON(pixels):
             current = {
                 "levelNodeStatic": {
                     "material": 8,
+                    "color": {
+                        "a": 1
+                    },
                     "position": {
                         "x": x,
-                        "y": y
+                        "y": y,
+                        "z": 0
+                    },
+                    "rotation": {
+                        "w": 1
                     },
                     "scale": {
-                        "x": 1.0,
-                        "y": 1.0,
-                        "z": 1.0
+                        "x": 1,
+                        "y": 1,
+                        "z": 1
                     },
                     "shape": 1001
                 },
                 "animations": [
                     {
-                        "frames": [],
+                        "frames": [
+                            {
+                                "position": {},
+                                "rotation": {
+                                    "w": 1.0
+                                }
+                            }
+                        ],
                         "name": "idle",
-                        "speed": 0.04
-                        
+                        "speed": 1
                     }
                 ]
             }
             time = 0
             for state in pixels:
-                time += 1
+                time += 0.04
                 frame = {
                     "position": {
                         "z": round(state[y][x], 3)
+                    },
+                    "rotation": {
+                        "w": 1
                     },
                     "time": time
                 }
