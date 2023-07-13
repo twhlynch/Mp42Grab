@@ -1,0 +1,139 @@
+from flask import Flask, request, send_file
+from flask_cors import CORS
+import os, cv2, json, time
+import numpy as np
+from google.protobuf import json_format
+from generated import types_pb2, level_pb2
+
+app = Flask(__name__)
+CORS(app)
+
+def createLevel(data, outputFile):
+    level = level_pb2.Level()
+    json_format.Parse(data, level)
+    with open(outputFile, "wb") as f:
+        f.write(level.SerializeToString())
+
+def videoToPixelArray(path):
+    video = cv2.VideoCapture(path)
+    pixel_array = []
+    while True:
+        ret, frame = video.read()
+        if not ret:
+            break
+        resized_frame = cv2.resize(frame, (30, 30), interpolation=cv2.INTER_AREA)
+        gray_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
+        normalized_frame = gray_frame.astype(np.float32) / 255.0
+        pixel_array.append(normalized_frame.tolist())
+    video.release()
+    pixel_array = np.array(pixel_array)
+    return pixel_array.tolist()
+
+def pixelsToLevelJSON(pixels):
+    level = {
+        "ambienceSettings": {
+            "skyHorizonColor": {
+                "a": 1.0,
+                "b": 0.9574,
+                "g": 0.9574,
+                "r": 0.916
+            },
+            "skyZenithColor": {
+                "a": 1.0,
+                "b": 0.73,
+                "g": 0.476,
+                "r": 0.28
+            },
+            "sunAltitude": 45.0,
+            "sunAzimuth": 315.0,
+            "sunSize": 1.0
+        },
+        "complexity": 0,
+        "formatVersion": 7,
+        "levelNodes": [],
+        "maxCheckpointCount": 10,
+        "title": "VIDEO BY .INDEX"
+    }
+    for x in range(30):
+        for y in range(30):
+            current = {
+                "levelNodeStatic": {
+                    "material": 8,
+                    "color": {
+                        "a": 1
+                    },
+                    "position": {
+                        "x": x,
+                        "y": y,
+                        "z": 0
+                    },
+                    "rotation": {
+                        "w": 1
+                    },
+                    "scale": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1
+                    },
+                    "shape": 1001
+                },
+                "animations": [
+                    {
+                        "frames": [
+                            {
+                                "position": {},
+                                "rotation": {
+                                    "w": 1.0
+                                }
+                            }
+                        ],
+                        "name": "idle",
+                        "speed": 1
+                    }
+                ]
+            }
+            time = 0
+            for state in pixels:
+                time += 0.04
+                frame = {
+                    "position": {
+                        "z": round(state[y][x] / 2, 3)
+                    },
+                    "rotation": {
+                        "w": 1
+                    },
+                    "time": time
+                }
+                current['animations'][0]['frames'].append(frame)
+            level['levelNodes'].append(current)
+            print(str(x)+','+str(y))
+            print(len(current['animations'][0]['frames']))
+
+    return level
+
+@app.route('/process_video', methods=['POST'])
+def process_video():
+    
+    if 'file' not in request.files:
+        return 'No file found', 400
+    
+    video_file = request.files['file']
+    
+    if video_file and video_file.filename.endswith('.mp4'):
+        time_stamp = str(time.time()).split('.')[0]
+        tmp_filename = f'{time_stamp}.mp4'
+        video_file.save(tmp_filename)
+
+        pixels_json = videoToPixelArray(f'{time_stamp}.mp4')
+        level_json = pixelsToLevelJSON(pixels_json)
+        createLevel(json.dumps(level_json), f'{time_stamp}.level')
+        
+        response = send_file(f'{time_stamp}.level', as_attachment=True)
+        os.remove(f'{time_stamp}.level')
+        os.remove(f'{time_stamp}.mp4')
+        return response
+    
+    return 'Invalid file format', 400
+
+if __name__ == '__main__':
+    app.run()

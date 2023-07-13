@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Video to Grab | .index</title>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+        />
+        <meta name="description" content="Video to Grab" />
+        <meta name="author" content="twhlynch" />
+        <meta property="og:title" content="Video to Grab | .index" />
+        <meta property="og:description" content="Video to Grab" />
+        <meta property="og:site_name" content="Video to Grab | .index" />
+        <meta property="og:locale" content="en_us" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="http://twhlynch.me/Mp42Grab" />
+        <meta property="og:image" content="https://grab-tools.live/favicon.gif" />
+        <link rel="shortcut icon" href="https://grab-tools.live/favicon.gif" type="image/x-icon">
+        <!-- Google tag (gtag.js) -->
+        <script
+            async
+            src="https://www.googletagmanager.com/gtag/js?id=G-BDS57RBQ3Q"
+        ></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag("js", new Date());
+            gtag("config", "G-BDS57RBQ3Q");
+        </script>
+        <link rel="stylesheet" href="https://grab-tools.live/styles.css" />
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2rem;
+            }
+        </style>
+        <script>
+            async function processVideo() {
+                const fileInput = document.getElementById("videoFile");
+                const videoFile = fileInput.files[0];
+
+                const formData = new FormData();
+                formData.append("file", videoFile);
+
+                try {
+                    const response = await fetch(
+                        "https://dotindex.pythonanywhere.com/process_video",
+                        {
+                            method: "POST",
+                            body: formData,
+                        }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error("Error processing video");
+                    }
+
+                    const processedFile = await response.blob();
+                    const downloadLink = URL.createObjectURL(processedFile);
+
+                    const link = document.createElement("a");
+                    link.href = downloadLink;
+                    link.download = `${Math.floor(Date.now() / 1000)}.level`;
+                    link.click();
+
+                    URL.revokeObjectURL(downloadLink);
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <h1>Mp42Grab</h1>
+        <input type="file" id="videoFile" />
+        <button onclick="processVideo()">Process Video</button>
+    </body>
+</html>
