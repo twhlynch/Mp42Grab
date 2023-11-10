@@ -1,7 +1,5 @@
 # Mp42Grab
 
-### <p style="color: red;">Wont work until animations is implemented into GRAB</p>
-
 - Get [Python](https://www.python.org/)
 - Install dependencies with `pip install -r requirements.txt`
 ---
