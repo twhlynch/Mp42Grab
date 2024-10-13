@@ -1,30 +1,92 @@
-import cv2, json
-import numpy as np
-from google.protobuf import json_format
-from generated import types_pb2, level_pb2
+try:
+    import sys
+    import json
+    import itertools
+    import cv2
+    import numpy as np
+except ImportError:
+    print("Error: Did you forget to run 'bin/pip install -r requirements.txt'?")
+    sys.exit(1)
 
-def createLevel(data, outputFile):
-    level = level_pb2.Level()
-    json_format.Parse(data, level)
-    with open(outputFile, "wb") as f:
-        f.write(level.SerializeToString())
-
-def videoToPixelArray(path):
+def videoToPixelArray(path, x_len, y_len):
     video = cv2.VideoCapture(path)
     pixel_array = []
+    
     while True:
+        
         ret, frame = video.read()
         if not ret:
             break
-        resized_frame = cv2.resize(frame, (30, 30), interpolation=cv2.INTER_AREA)
+        
+        resized_frame = cv2.resize(frame, (x_len, y_len), interpolation=cv2.INTER_AREA)
         gray_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
+        
         normalized_frame = gray_frame.astype(np.float32) / 255.0
+        
         pixel_array.append(normalized_frame.tolist())
+    
     video.release()
-    pixel_array = np.array(pixel_array)
-    return pixel_array.tolist()
+    
+    pixel_list = np.array(pixel_array).tolist()
+    
+    return pixel_list
 
-def pixelsToLevelJSON(pixels):
+def createNodeForPixel(x, y, pixels):
+    node = {
+        "levelNodeStatic": {
+            "material": 8,
+            "color1": {
+                "a": 1
+            },
+            "position": {
+                "x": x,
+                "y": y
+            },
+            "rotation": {
+                "w": 1
+            },
+            "scale": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "shape": 1001
+        },
+        "animations": [
+            {
+                "frames": [
+                    {
+                        "position": {},
+                        "rotation": {
+                            "w": 1.0
+                        }
+                    }
+                ],
+                "name": "idle",
+                "speed": 1
+            }
+        ]
+    }
+
+    time = 0
+    for state in pixels:
+        time += 0.04
+        
+        frame = {
+            "position": {
+                "z": round(state[y][x] / 2, 3)
+            },
+            "rotation": {
+                "w": 1
+            },
+            "time": time
+        }
+        
+        node['animations'][0]['frames'].append(frame)
+
+    return node
+
+def pixelsToLevelJSON(pixels, x_len, y_len):
     level = {
         "ambienceSettings": {
             "skyHorizonColor": {
@@ -43,69 +105,41 @@ def pixelsToLevelJSON(pixels):
             "sunAzimuth": 315.0,
             "sunSize": 1.0
         },
-        "complexity": 0,
         "formatVersion": 7,
         "levelNodes": [],
         "maxCheckpointCount": 10,
         "title": "VIDEO BY .INDEX"
     }
-    for x in range(30):
-        for y in range(30):
-            current = {
-                "levelNodeStatic": {
-                    "material": 8,
-                    "color": {
-                        "a": 1
-                    },
-                    "position": {
-                        "x": x,
-                        "y": y,
-                        "z": 0
-                    },
-                    "rotation": {
-                        "w": 1
-                    },
-                    "scale": {
-                        "x": 1,
-                        "y": 1,
-                        "z": 1
-                    },
-                    "shape": 1001
-                },
-                "animations": [
-                    {
-                        "frames": [
-                            {
-                                "position": {},
-                                "rotation": {
-                                    "w": 1.0
-                                }
-                            }
-                        ],
-                        "name": "idle",
-                        "speed": 1
-                    }
-                ]
-            }
-            time = 0
-            for state in pixels:
-                time += 0.04
-                frame = {
-                    "position": {
-                        "z": round(state[y][x] / 2, 3)
-                    },
-                    "rotation": {
-                        "w": 1
-                    },
-                    "time": time
-                }
-                current['animations'][0]['frames'].append(frame)
-            level['levelNodes'].append(current)
-            print(str(x)+','+str(y))
-            print(len(current['animations'][0]['frames']))
+    
+    for x, y in itertools.product(range(x_len), range(y_len)):
+        node = createNodeForPixel(x, y, pixels)
+        level['levelNodes'].append(node)
 
     return level
 
-pixels_json = videoToPixelArray('video.mp4')
-level_json = pixelsToLevelJSON(pixels_json)
-createLevel(json.dumps(level_json), 'video.level')
+def main():
+    args = sys.argv
+    
+    video_path = 'video.mp4'
+    x, y = 30, 30
+    
+    if len(args) > 1: video_path = args[1]
+    if len(args) > 2: x = int(args[2])
+    if len(args) > 3: y = int(args[3])
+    
+    print(f"Running on {video_path} at {x}x{y}..")
+    
+    pixels_json = videoToPixelArray('video.mp4', x, y)
+    print('Read video data\nConverting to JSON..')
+    
+    level_json = pixelsToLevelJSON(pixels_json, x, y)
+    print('Converted to level JSON\nWriting JSON file..')
+    
+    output_file = 'video_level.json'
+    with open(output_file, 'w') as f:
+        json.dump(level_json, f)
+
+    print('Created video_level.json')
+
+if __name__ == '__main__':
+    main()
