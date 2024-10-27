@@ -24,7 +24,7 @@ Recommended to use videos less than 1 minute long, and dimensions of 30x30.
 
 The script should output file called `video_level.json`. You can convert it to a level file with any json to level tool such as any of the following tools:
 
-- [JSON editor]()
+- [JSON editor](https://grab-tools.live/editor)
 
 > View > Performance > Toggle editor
 > 
